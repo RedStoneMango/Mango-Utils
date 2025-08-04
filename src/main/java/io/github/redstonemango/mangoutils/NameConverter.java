@@ -137,7 +137,7 @@ public class NameConverter {
                 for (String part : parts) {
                     builder.append(builder.isEmpty() ? "" : "_").append(part.toLowerCase(locale));
                 }
-                return builder.toString().replaceAll("_{2,}", " ");
+                return builder.toString().replaceAll("_{2,}", "_");
             }
             case KEBAB_CASE -> {
                 String[] parts = plainText.split(" ");
@@ -145,7 +145,7 @@ public class NameConverter {
                 for (String part : parts) {
                     builder.append(builder.isEmpty() ? "" : "-").append(part.toLowerCase(locale));
                 }
-                return builder.toString().replaceAll("-{2,}", " ");
+                return builder.toString().replaceAll("-{2,}", "-");
             }
             case PLAIN_TEXT -> {
                 return plainText;
