@@ -1,4 +1,4 @@
-# 🔐 Mango-Utils
+# ☕ Mango-Utils
 
 **Mango-Utils** is a free, open-source collection of lightweight Java utility classes—ranging from simple I/O helpers to secure password hashing and configurable log management.
 
