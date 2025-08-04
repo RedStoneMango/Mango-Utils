@@ -79,6 +79,7 @@ You may also directly copy specific utility classes into your own project, as lo
 | Class              | Description                                                                                                                                                       |
 |--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `MangoIO`          | Handy I/O utilities like recursive directory deletion.                                                                                                            |
+| `NameConverter`    | Converts names written in different naming conventions (e.g., `camelCase`, `snake_case`) from one convention to the other.                                        |
 | `SemanticVersion`  | Compare and sort semantic versions (e.g., `1.2.0` vs `1.10.0`). Useful for dependency versioning.                                                                 |
 | `Hasher`           | Password hashing and verification using PBKDF2 with HMAC-SHA-256.                                                                                                 |
 | `CypherEncryption` | Easy AES-GCM encryption/decryption with password-based key derivation (PBKDF2).                                                                                   |
