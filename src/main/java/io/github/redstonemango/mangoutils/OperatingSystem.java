@@ -10,6 +10,7 @@ package io.github.redstonemango.mangoutils;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -25,8 +26,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * Represents the current operating system and provides utility methods for OS-specific operations
  * such as opening files, browsing folders, or normalizing input events across platforms.
  * <p>
- * This enum acts as a safer and more predictable alternative to {@link java.awt.Desktop},
- * especially for Linux and Mac systems where {@code Desktop} is known to be unreliable.
+ * Some parts of this enum serve as a safer and more predictable alternative to {@link java.awt.Desktop},
+ * particularly on Linux and macOS systems where {@code Desktop} is known to be unreliable. Other parts
+ * introduce entirely new logic based on the user's operating system.
  * </p>
  *
  * <p>Supported platforms:</p>
@@ -75,12 +77,12 @@ public enum OperatingSystem {
         }
 
         @Override
-        public KeyEvent unifyKeyEvent(KeyEvent keyEvent) {
+        public KeyEvent normalizeKeyEvent(KeyEvent keyEvent) {
             return keyEvent;
         }
 
         @Override
-        public MouseEvent unifyMouseEvent(MouseEvent mouseEvent) {
+        public MouseEvent normalizeMouseEvent(MouseEvent mouseEvent) {
             return mouseEvent;
         }
 
@@ -119,12 +121,12 @@ public enum OperatingSystem {
         }
 
         @Override
-        public KeyEvent unifyKeyEvent(KeyEvent keyEvent) {
+        public KeyEvent normalizeKeyEvent(KeyEvent keyEvent) {
             return keyEvent;
         }
 
         @Override
-        public MouseEvent unifyMouseEvent(MouseEvent mouseEvent) {
+        public MouseEvent normalizeMouseEvent(MouseEvent mouseEvent) {
             return mouseEvent;
         }
 
@@ -151,7 +153,7 @@ public enum OperatingSystem {
         }
 
         @Override
-        public KeyEvent unifyKeyEvent(KeyEvent keyEvent) {
+        public KeyEvent normalizeKeyEvent(KeyEvent keyEvent) {
             int modifiers = 0;
             if (keyEvent.isMetaDown()) modifiers = modifiers | KeyEvent.CTRL_DOWN_MASK;
             if (keyEvent.isAltDown() || keyEvent.isAltGraphDown())  modifiers = modifiers | KeyEvent.ALT_DOWN_MASK | KeyEvent.ALT_GRAPH_DOWN_MASK;
@@ -170,7 +172,7 @@ public enum OperatingSystem {
         }
 
         @Override
-        public MouseEvent unifyMouseEvent(MouseEvent mouseEvent) {
+        public MouseEvent normalizeMouseEvent(MouseEvent mouseEvent) {
             int modifiers = 0;
             if (mouseEvent.isMetaDown()) modifiers = modifiers | KeyEvent.CTRL_DOWN_MASK;
             if (mouseEvent.isAltDown() || mouseEvent.isAltGraphDown())  modifiers = modifiers | KeyEvent.ALT_DOWN_MASK | KeyEvent.ALT_GRAPH_DOWN_MASK;
@@ -214,12 +216,12 @@ public enum OperatingSystem {
         }
 
         @Override
-        public KeyEvent unifyKeyEvent(KeyEvent keyEvent) {
+        public KeyEvent normalizeKeyEvent(KeyEvent keyEvent) {
             return keyEvent;
         }
 
         @Override
-        public MouseEvent unifyMouseEvent(MouseEvent mouseEvent) {
+        public MouseEvent normalizeMouseEvent(MouseEvent mouseEvent) {
             return mouseEvent;
         }
 
@@ -441,7 +443,7 @@ public enum OperatingSystem {
      * @param keyEvent the original key event.
      * @return a normalized key event.
      */
-    public abstract KeyEvent unifyKeyEvent(KeyEvent keyEvent);
+    public abstract KeyEvent normalizeKeyEvent(KeyEvent keyEvent);
 
 
     /**
@@ -451,7 +453,7 @@ public enum OperatingSystem {
      * @param mouseEvent the original mouse event.
      * @return a normalized mouse event.
      */
-    public abstract MouseEvent unifyMouseEvent(MouseEvent mouseEvent);
+    public abstract MouseEvent normalizeMouseEvent(MouseEvent mouseEvent);
 
 
     /**
