@@ -62,7 +62,7 @@ public enum OperatingSystem {
 
         @Override
         public String[] createFileBrowseCommand(File file) {
-            String[] fileManagers = {"nautilus", "thuxnar", "dolphin", "caja", "io.elementary.files"};
+            String[] fileManagers = {"nautilus", "thunar", "dolphin", "caja", "io.elementary.files"};
             if (usedManagerCache == null) {
                 usedManagerCache = new AtomicReference<>();
                 for (String manager : fileManagers) {
