@@ -8,9 +8,12 @@ on:
         required: true
         type: string
       notes:
-        description: 'Optional release notes'
+        description: 'Release notes'
         required: false
         type: string
+
+permissions:
+  contents: write
 
 jobs:
   release:
