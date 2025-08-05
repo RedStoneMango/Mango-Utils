@@ -28,31 +28,47 @@ jobs:
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "PROJECT_VERSION=$VERSION" >> $GITHUB_ENV
           echo "Version from pom.xml: $VERSION"
+          # Check if this is a pre-release version (contains a hyphen)
+          if [[ "$VERSION" == *-* ]]; then
+            echo "IS_PRERELEASE=true" >> $GITHUB_ENV
+          else
+            echo "IS_PRERELEASE=false" >> $GITHUB_ENV
+          fi
 
-      - name: Exit if release already exists
+      - name: Stop if version is a pre-release
+        if: env.IS_PRERELEASE == 'true'
+        run: echo "Pre-release version detected ($PROJECT_VERSION). Skipping release." && exit 0
+
+      - name: Set up GitHub CLI
+        uses: cli/cli-action@v2
+
+      - name: Check if release already exists
         id: check_release
         run: |
           TAG="${{ env.PROJECT_VERSION }}"
-          if curl --silent --fail -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"  \
-            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}" > /dev/null; then
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Skip build if release exists
-        if: steps.check_release.outputs.exists == 'true'
-        run: echo "Release already exists. Skipping build and release steps." && exit 0
-
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn clean package --file pom.xml
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.PROJECT_VERSION }}
-          name: Release ${{ env.PROJECT_VERSION }}
-          files: target/*.jar
+      - name: Upload GitHub Release (Create or Update)
+        run: |
+          TAG="$PROJECT_VERSION"
+          NAME="Release $TAG"
+          FILES="target/*.jar"
+
+          if [ "${{ steps.check_release.outputs.exists }}" = "true" ]; then
+            echo "Updating existing release for tag $TAG"
+            gh release upload "$TAG" $FILES --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            echo "Creating new release for tag $TAG"
+            gh release create "$TAG" $FILES --title "$NAME" --repo "$GITHUB_REPOSITORY"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
