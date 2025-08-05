@@ -35,9 +35,11 @@ Then add the dependency:
 <dependency>
     <groupId>com.github.redstonemango</groupId>
     <artifactId>mango-utils</artifactId>
-    <version>master-SNAPSHOT</version>
+    <version>VERSION</version>
 </dependency>
 ```
+**Replace `VERSION` with the newest release version of Mango-Utils:**
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/RedStoneMango/Mango-Utils)](https://github.com/RedStoneMango/Mango-Utils/releases)
 
 ---
 
@@ -55,13 +57,15 @@ dependencyResolutionManagement {
 }
 ```
 
-Then in your `build.gradle`:
+Then add the dependency to your `build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'com.github.redstonemango:mango-utils:master-SNAPSHOT'
+    implementation 'com.github.redstonemango:mango-utils: VERSION'
 }
 ```
+**Replace `VERSION` with the newest release version of Mango-Utils:**
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/RedStoneMango/Mango-Utils)](https://github.com/RedStoneMango/Mango-Utils/releases)
 
 ---
 
@@ -101,8 +105,9 @@ You may also directly copy specific utility classes into your own project, as lo
 
 ## 📎 License
 
-Mango-Utils is licensed under the [MIT License](https://github.com/RedStoneMango/mango-utils/blob/main/LICENSE).  
-Feel free to use, modify, and redistribute it under the terms outlined there.
+This project is licensed under [![GitHub License](https://img.shields.io/github/license/RedStoneMango/Mango-Utils)](https://github.com/RedStoneMango/mango-utils/blob/main/LICENSE).
+
+You may use the project as long as you follow the terms of that very license.
 
 ---
 
