@@ -28,7 +28,6 @@ jobs:
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "PROJECT_VERSION=$VERSION" >> $GITHUB_ENV
           echo "Version from pom.xml: $VERSION"
-          # Check if this is a pre-release version (contains a hyphen)
           if [[ "$VERSION" == *-* ]]; then
             echo "IS_PRERELEASE=true" >> $GITHUB_ENV
           else
@@ -39,36 +38,60 @@ jobs:
         if: env.IS_PRERELEASE == 'true'
         run: echo "Pre-release version detected ($PROJECT_VERSION). Skipping release." && exit 0
 
-      - name: Set up GitHub CLI
-        uses: cli/cli-action@v2
-
       - name: Check if release already exists
         id: check_release
         run: |
-          TAG="${{ env.PROJECT_VERSION }}"
-          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+          RELEASE_TAG="${{ env.PROJECT_VERSION }}"
+          API_URL="https://api.github.com/repos/${{ github.repository }}/releases/tags/$RELEASE_TAG"
+
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL")
+          if echo "$RESPONSE" | grep -q '"id":'; then
             echo "exists=true" >> $GITHUB_OUTPUT
+            echo "release_id=$(echo $RESPONSE | jq -r .id)" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build with Maven
         run: mvn clean package --file pom.xml
 
-      - name: Upload GitHub Release (Create or Update)
+      - name: Create or Update GitHub Release
         run: |
           TAG="$PROJECT_VERSION"
           NAME="Release $TAG"
-          FILES="target/*.jar"
+          FILES=$(ls target/*.jar)
+          API_REPO="https://api.github.com/repos/${{ github.repository }}"
+          AUTH_HEADER="Authorization: token ${{ secrets.GITHUB_TOKEN }}"
+          CONTENT_TYPE="application/json"
 
           if [ "${{ steps.check_release.outputs.exists }}" = "true" ]; then
             echo "Updating existing release for tag $TAG"
-            gh release upload "$TAG" $FILES --clobber --repo "$GITHUB_REPOSITORY"
+            RELEASE_ID="${{ steps.check_release.outputs.release_id }}"
+            # Update the release (optional, can be skipped if just uploading files)
+            curl -s -X PATCH \
+              -H "$AUTH_HEADER" \
+              -H "$CONTENT_TYPE" \
+              -d "{\"tag_name\":\"$TAG\",\"name\":\"$NAME\"}" \
+              "$API_REPO/releases/$RELEASE_ID"
           else
             echo "Creating new release for tag $TAG"
-            gh release create "$TAG" $FILES --title "$NAME" --repo "$GITHUB_REPOSITORY"
+            RESPONSE=$(curl -s -X POST \
+              -H "$AUTH_HEADER" \
+              -H "$CONTENT_TYPE" \
+              -d "{\"tag_name\":\"$TAG\",\"name\":\"$NAME\",\"draft\":false,\"prerelease\":false}" \
+              "$API_REPO/releases")
+            RELEASE_ID=$(echo "$RESPONSE" | jq -r .id)
           fi
+
+          # Upload assets
+          for FILE in $FILES; do
+            FILENAME=$(basename "$FILE")
+            echo "Uploading asset: $FILENAME"
+            curl -s -X POST \
+              -H "$AUTH_HEADER" \
+              -H "Content-Type: application/java-archive" \
+              --data-binary @"$FILE" \
+              "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=$FILENAME"
+          done
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_VERSION: ${{ env.PROJECT_VERSION }}
