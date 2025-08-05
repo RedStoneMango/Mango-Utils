@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version number (e.g. 1.2.3 — no "v" prefix)'
+        description: 'Version number (Semantic version, e.g. 1.2.3)'
         required: true
         type: string
       notes:
@@ -41,18 +41,6 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -Drevision=${{ github.event.inputs.version }}
 
-      - name: Create source zip
-        run: |
-          mkdir source_temp
-          rsync -av --exclude='.git' --exclude='target' ./ source_temp/
-          cd source_temp
-          zip -r ../source-${{ github.event.inputs.version }}.zip .
-    
-      - name: Create source tar
-        run: |
-          rsync -av --exclude='.git' --exclude='target' ./ source_temp/
-          tar -czvf source-${{ github.event.inputs.version }}.tar.gz -C source_temp .
-
       - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
@@ -63,8 +51,6 @@ jobs:
           prerelease: false
           files: |
             target/*.jar
-            source-${{ github.event.inputs.version }}.zip
-            source-${{ github.event.inputs.version }}.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
