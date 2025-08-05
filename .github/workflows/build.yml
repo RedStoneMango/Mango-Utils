@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version number (e.g. 1.0.0)'
+        description: 'Version number (e.g. 1.2.3 — no "v" prefix)'
         required: true
         type: string
-      test:
-        description: 'Hi'
+      notes:
+        description: 'Optional release notes'
         required: false
-        type: boolean
+        type: string
 
 jobs:
   release:
@@ -26,6 +26,14 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '23'
+
+      - name: Set release notes fallback
+        run: |
+          if [ -z "${{ github.event.inputs.notes }}" ]; then
+            echo "RELEASE_NOTES=Automatically published release" >> $GITHUB_ENV
+          else
+            echo "RELEASE_NOTES=${{ github.event.inputs.notes }}" >> $GITHUB_ENV
+          fi
 
       - name: Build with Maven
         run: mvn clean package -Drevision=${{ github.event.inputs.version }}
@@ -43,7 +51,7 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
-          body: "Automated release of version ${{ github.event.inputs.version }}"
+          body: ${{ env.RELEASE_NOTES }}
           draft: false
           prerelease: false
         env:
