@@ -40,11 +40,16 @@ jobs:
 
       - name: Create source zip
         run: |
-          zip -r source-${{ github.event.inputs.version }}.zip . -x '*.git*' 'target/*'
-
-      - name: Create source tar.gz
+          mkdir source_temp
+          rsync -av --exclude='.git' --exclude='target' ./ source_temp/
+          cd source_temp
+          zip -r ../source-${{ github.event.inputs.version }}.zip .
+    
+      - name: Create source tar
         run: |
-          tar --exclude='./.git' --exclude='./target' -czvf source-${{ github.event.inputs.version }}.tar.gz .
+          mkdir source_temp
+          rsync -av --exclude='.git' --exclude='target' ./ source_temp/
+          tar -czvf source-${{ github.event.inputs.version }}.tar.gz -C source_temp .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
