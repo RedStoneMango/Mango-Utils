@@ -36,15 +36,45 @@ public class NameConverter {
      * @param input The string to convert
      * @param inputConvention The convention, the input string is written in. This may be {@link NamingConvention#MIXED_CASE_TYPES MIXED_CASE_TYPES}
      * @param outputConvention The convention to convert to.
+     * @param plainTextWithLeadingUppercase Whether the words in a generated {@linkplain NamingConvention#PLAIN_TEXT PLAIN_TEXT} should start uppercase letters. This option is ignored if {@code outputConvention != NamingConvention.PLAIN_TEXT}.
+     * @return The converted string.
+     * @throws IllegalArgumentException If one of the specified conventions is null or invalid in the current context.
+     * @see #convert(String, NamingConvention, NamingConvention, Locale)
+     */
+    public static String convert(String input, NamingConvention inputConvention, NamingConvention outputConvention, boolean plainTextWithLeadingUppercase) {
+        return convert(input, inputConvention, outputConvention, Locale.ROOT, plainTextWithLeadingUppercase);
+    }
+    /**
+     * Converts a string from one naming convention to another using the root locale.
+     *
+     * @param input The string to convert
+     * @param inputConvention The convention, the input string is written in. This may be {@link NamingConvention#MIXED_CASE_TYPES MIXED_CASE_TYPES}
+     * @param outputConvention The convention to convert to.
      * @param locale The locale to use.
      * @return The converted string.
      * @throws IllegalArgumentException If one of the specified conventions is null or invalid in the current context.
      * @see #convert(String, NamingConvention, NamingConvention)
      */
     public static String convert(String input, NamingConvention inputConvention, NamingConvention outputConvention, Locale locale) {
+        return convert(input, inputConvention, outputConvention, locale, false);
+    }
+    /**
+     * Converts a string from one naming convention to another using the root locale.
+     *
+     * @param input The string to convert
+     * @param inputConvention The convention, the input string is written in. This may be {@link NamingConvention#MIXED_CASE_TYPES MIXED_CASE_TYPES}
+     * @param outputConvention The convention to convert to.
+     * @param locale The locale to use.
+     * @param plainTextWithLeadingUppercase Whether the words in a generated {@linkplain NamingConvention#PLAIN_TEXT PLAIN_TEXT} should start uppercase letters. This option is ignored if {@code outputConvention != NamingConvention.PLAIN_TEXT}.
+     * @return The converted string.
+     * @throws IllegalArgumentException If one of the specified conventions is null or invalid in the current context.
+     * @see #convert(String, NamingConvention, NamingConvention)
+     */
+    public static String convert(String input, NamingConvention inputConvention, NamingConvention outputConvention, Locale locale, boolean plainTextWithLeadingUppercase) {
         if (inputConvention == outputConvention) return input;
         String plain = inputConvention == NamingConvention.MIXED_CASE_TYPES ? mixedToPlain(input, locale) : customToPlain(input, inputConvention, locale);
-        return plainToCustom(plain, outputConvention, locale);
+        String result = plainToCustom(plain, outputConvention, locale);
+        return outputConvention == NamingConvention.PLAIN_TEXT && plainTextWithLeadingUppercase ? plainWithLeadingUppercase(result, locale) : result;
     }
 
     /**
@@ -59,6 +89,24 @@ public class NameConverter {
         if (mixedText.contains("_")) mixedText = customToPlain(mixedText, NamingConvention.SNAKE_CASE, locale);
         if (mixedText.contains("-")) mixedText = customToPlain(mixedText, NamingConvention.KEBAB_CASE, locale);
         return mixedText;
+    }
+
+    /**
+     * Capitalises the first letter of every word in a plain text.
+     *
+     * @param plainText The text to capitalize.
+     * @param locale The locale to use.
+     * @return The resulting text.
+     */
+    private static String plainWithLeadingUppercase(String plainText, Locale locale) {
+        String[] parts = plainText.split(" ");
+        StringBuilder builder = new StringBuilder();
+        for (String part : parts) {
+            String start = part.isEmpty() ? "" : part.substring(0, 1);
+            String rest = part.length() <= 1 ? "" : part.substring(1);
+            builder.append(builder.isEmpty() ? "" : " ").append(start.toUpperCase(locale)).append(rest);
+        }
+        return builder.toString();
     }
 
     /**
