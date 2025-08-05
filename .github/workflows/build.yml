@@ -47,7 +47,6 @@ jobs:
     
       - name: Create source tar
         run: |
-          mkdir source_temp
           rsync -av --exclude='.git' --exclude='target' ./ source_temp/
           tar -czvf source-${{ github.event.inputs.version }}.tar.gz -C source_temp .
 
