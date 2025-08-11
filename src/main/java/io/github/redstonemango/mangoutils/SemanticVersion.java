@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
  *   <li>3.2.4-beta-1</li>
  *   <li>3.2.4-rc-3</li>
  * </ul>
- * </p>
  *
  * @author RedStoneMango
  */
