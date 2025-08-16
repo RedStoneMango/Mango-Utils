@@ -166,7 +166,7 @@ public class MangoIO {
      * @return a new {@link File} object with a non-existing file name
      * @see #getNextAvailablePath(Path)
      */
-    public static File getNexAvailableFile(File baseFile) {
+    public static File getNextAvailableFile(File baseFile) {
         return getNextAvailablePath(baseFile.toPath()).toFile();
     }
     /**
