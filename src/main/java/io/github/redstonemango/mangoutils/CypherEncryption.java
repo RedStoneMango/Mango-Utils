@@ -37,44 +37,41 @@ import java.util.Base64;
  */
 public class CypherEncryption {
 
-    private static final int KEY_SIZE = 128; // bits
-    private static final int IV_SIZE = 12; // 12 bytes is standard for GCM
-    private static final int TAG_LENGTH = 128; // bits
+    /**
+     * Size of the encryption key in bits.
+     * This is AES-128.
+     */
+    private static final int KEY_SIZE = 128;
+    /**
+     * Size of the Initialization Vector (IV) in bytes.
+     * 12 bytes (96 bits) is standard for AES-GCM mode.
+     */
+    private static final int IV_SIZE = 12;
+    /**
+     * Length of the authentication tag in bits.
+     * Used for data integrity in AES-GCM.
+     */
+    private static final int TAG_LENGTH = 128;
+    /**
+     * Number of iterations for the key derivation function (PBKDF2).
+     * Higher values increase computational cost, improving security.
+     */
     private static final int ITERATIONS = 65536;
+    /**
+     * Length of the cryptographic salt in bytes.
+     * Used to randomize key derivation and prevent precomputed attacks.
+     */
     private static final int SALT_LENGTH = 16;
-
+    
     /**
-     * Encrypts a string using a password and returns a Base64-encoded string.
+     * Encrypts a byte array using a password and returns the raw encrypted bytes.
      *
-     * @param input    The plaintext string to encrypt.
-     * @param password The password to use for key derivation.
-     * @return A Base64-encoded encrypted string.
-     * @throws Exception If encryption fails.
-     */
-    public static String encryptToString(String input, char[] password) throws Exception {
-        return Base64.getEncoder().encodeToString(encrypt(input, password));
-    }
-    /**
-     * Encrypts a string using a pre-derived {@link SecretKey} and salt, returning a Base64-encoded string.
-     *
-     * @param input The plaintext string to encrypt.
-     * @param key   The AES encryption key.
-     * @param salt  The salt to prepend to the encrypted output.
-     * @return A Base64-encoded encrypted string.
-     * @throws Exception If encryption fails.
-     */
-    public static String encryptToString(String input, SecretKey key, byte[] salt) throws Exception {
-        return Base64.getEncoder().encodeToString(encrypt(input, key, salt));
-    }
-    /**
-     * Encrypts a string using a password and returns the raw encrypted bytes.
-     *
-     * @param input    The plaintext string to encrypt.
+     * @param inputBytes    The byte array to encrypt.
      * @param password The password to derive the encryption key.
      * @return A byte array containing salt + IV + ciphertext.
      * @throws Exception If encryption fails.
      */
-    public static byte[] encrypt(String input, char[] password) throws Exception {
+    public static byte[] encrypt(byte[] inputBytes, char[] password) throws Exception {
         byte[] salt = generateRandomBytes(SALT_LENGTH);
         byte[] iv = generateRandomBytes(IV_SIZE);
 
@@ -84,7 +81,7 @@ public class CypherEncryption {
         GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH, iv);
         cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
 
-        byte[] encryptedBytes = cipher.doFinal(input.getBytes(StandardCharsets.UTF_8));
+        byte[] encryptedBytes = cipher.doFinal(inputBytes);
 
         // Combine salt + IV + ciphertext
         byte[] combined = new byte[salt.length + iv.length + encryptedBytes.length];
@@ -95,22 +92,22 @@ public class CypherEncryption {
         return combined;
     }
     /**
-     * Encrypts a string using a given {@link SecretKey} and salt.
+     * Encrypts a byte array using a given {@link SecretKey} and salt.
      *
-     * @param input The plaintext string.
+     * @param inputBytes The byte array to encrypt.
      * @param key   The encryption key.
      * @param salt  The salt to prepend to the result.
      * @return The encrypted result as a byte array: salt + IV + ciphertext.
      * @throws Exception If encryption fails.
      */
-    public static byte[] encrypt(String input, SecretKey key, byte[] salt) throws Exception {
+    public static byte[] encrypt(byte[] inputBytes, SecretKey key, byte[] salt) throws Exception {
         byte[] iv = generateRandomBytes(IV_SIZE);
 
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH, iv);
         cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
 
-        byte[] encryptedBytes = cipher.doFinal(input.getBytes(StandardCharsets.UTF_8));
+        byte[] encryptedBytes = cipher.doFinal(inputBytes);
 
         // Combine salt + IV + ciphertext
         byte[] combined = new byte[salt.length + iv.length + encryptedBytes.length];
@@ -120,38 +117,19 @@ public class CypherEncryption {
 
         return combined;
     }
-
+    
     /**
-     * Decrypts a Base64-encoded ciphertext using the given password.
+     * Decrypts a byte array that includes salt, IV, and ciphertext using a password.
+     * <p>
+     * Returns null if decryption fails due to an invalid authentication tag.
+     * </p>
      *
-     * @param base64CypherText The encrypted string in Base64 format.
-     * @param password         The password used to derive the key.
-     * @return The decrypted plaintext string, or {@code null} if decryption fails due to an invalid authentication tag.
-     * @throws Exception If decryption fails due to an internal error.
-     */
-    public static @Nullable String decryptFromString(String base64CypherText, char[] password) throws Exception {
-        return decrypt(Base64.getDecoder().decode(base64CypherText), password);
-    }
-    /**
-     * Decrypts a Base64-encoded ciphertext using a given {@link SecretKey}.
-     *
-     * @param base64CypherText The encrypted string in Base64 format.
-     * @param key              The AES key for decryption.
-     * @return The decrypted plaintext, or {@code null} if decryption fails due to an invalid authentication tag.
-     * @throws Exception If decryption fails due to an internal error.
-     */
-    public static @Nullable String decryptFromString(String base64CypherText, SecretKey key) throws Exception {
-        return decrypt(Base64.getDecoder().decode(base64CypherText), key);
-    }
-    /**
-     * Decrypts a raw byte array that includes salt, IV, and ciphertext using a password.
-     *
-     * @param cypherBytes The encrypted byte array.
+     * @param cypherBytes The encrypted byte array (salt + IV + ciphertext).
      * @param password    The password to derive the decryption key.
-     * @return The decrypted plaintext string, or {@code null} if authentication fails due to an invalid authentication tag.
+     * @return The decrypted byte array or null if decryption fails due to an invalid authentication tag.
      * @throws Exception If decryption fails due to an internal error.
      */
-    public static @Nullable String decrypt(byte[] cypherBytes, char[] password) throws Exception {
+    public static byte@Nullable[] decrypt(byte[] cypherBytes, char[] password) throws Exception {
         try {
             byte[] salt = new byte[SALT_LENGTH];
             byte[] iv = new byte[IV_SIZE];
@@ -167,32 +145,37 @@ public class CypherEncryption {
             GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH, iv);
             cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
 
-            return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
+            return cipher.doFinal(ciphertext);
         } catch (AEADBadTagException e) {
             return null;
         }
     }
     /**
      * Decrypts a byte array that includes IV + ciphertext using a pre-derived key.
+     * <p>
+     * Returns null if decryption fails due to an invalid authentication tag.
+     * </p>
      *
-     * @param cypherBytes The encrypted byte array (IV + ciphertext).
+     * @param cypherBytes The encrypted byte array (salt + IV + ciphertext).
      * @param key         The AES key used for decryption.
-     * @return The decrypted plaintext string, or {@code null} if authentication fails due to an invalid authentication tag.
+     * @return The decrypted byte array, or if decryption fails due to an invalid authentication tag.
      * @throws Exception If decryption fails due to an internal error.
      */
-    public static @Nullable String decrypt(byte[] cypherBytes, SecretKey key) throws Exception {
+    public static byte@Nullable[] decrypt(byte[] cypherBytes, SecretKey key) throws Exception {
         try {
-            byte[] iv = new byte[IV_SIZE];
-            byte[] ciphertext = new byte[cypherBytes.length - IV_SIZE];
+            int offset = SALT_LENGTH;
 
-            System.arraycopy(cypherBytes, 0, iv, 0, IV_SIZE);
-            System.arraycopy(cypherBytes, IV_SIZE, ciphertext, 0, ciphertext.length);
+            byte[] iv = new byte[IV_SIZE];
+            byte[] ciphertext = new byte[cypherBytes.length - offset - IV_SIZE];
+
+            System.arraycopy(cypherBytes, offset, iv, 0, IV_SIZE);
+            System.arraycopy(cypherBytes, offset + IV_SIZE, ciphertext, 0, ciphertext.length);
 
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             GCMParameterSpec gcmSpec = new GCMParameterSpec(TAG_LENGTH, iv);
             cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
 
-            return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
+            return cipher.doFinal(ciphertext);
         } catch (AEADBadTagException e) {
             return null;
         }
@@ -221,13 +204,16 @@ public class CypherEncryption {
     }
 
     /**
-     * Extracts the encrypted payload from the given cipher byte array by removing the salt prefix.
+     * Extracts the salt from the given cipher byte array by copying the salt prefix into a separate array.
+     * <p>
+     * <strong>Note:</strong> This method does not edit the original {@code cypherBytes}. The salt is still included in the original array after this method is finished.
+     * </p>
      *
      * @param cypherBytes The full encrypted byte array containing salt + IV + ciphertext.
      * @return A byte array containing only the IV + ciphertext portion (payload).
      */
-    public static byte[] extractPayload(byte[] cypherBytes) {
-        return Arrays.copyOfRange(cypherBytes, SALT_LENGTH, cypherBytes.length);
+    public static byte[] extractSalt(byte[] cypherBytes) {
+        return Arrays.copyOfRange(cypherBytes, 0, SALT_LENGTH);
     }
     /**
      * Derives an AES secret key from the given password and salt using PBKDF2 with HMAC SHA-256.
