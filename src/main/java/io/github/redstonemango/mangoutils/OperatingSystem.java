@@ -19,7 +19,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Locale;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -105,6 +106,23 @@ public enum OperatingSystem {
                 return false;
             }
         }
+
+        @Override
+        public String[] createProcessElevationCommand(String[] processCommand, String[] includedEnvVars) {
+            List<String> command = new ArrayList<>();
+            command.add("pkexec");
+            command.add("env");
+
+            for (String var : includedEnvVars) {
+                String value = System.getenv(var);
+                if (value != null && !value.isEmpty()) {
+                    command.add(var + "=" + value);
+                }
+            }
+
+            command.addAll(Arrays.asList(processCommand));
+            return command.toArray(new String[0]);
+        }
     },
     /**
      * A Microsoft Windows-based operating system.
@@ -136,6 +154,31 @@ public enum OperatingSystem {
             return new File(new File(userHome, "AppData/Local"), folderName);
         }
 
+        @Override
+        public String[] createProcessElevationCommand(String[] processCommand, String[] includedEnvVars) {
+            String file = processCommand[0];
+            StringBuilder argList = new StringBuilder();
+            if (processCommand.length > 1) {
+                for (int i = 1; i < processCommand.length; i++) {
+                    if (i > 1) argList.append(",");
+                    argList.append("'").append(processCommand[i] == null ? "" : processCommand[i].replace("'", "''")).append("'");
+                }
+            }
+
+            String psCmd;
+            if (argList.isEmpty()) {
+                psCmd = "Start-Process -FilePath '" + file.replace("'", "''") + "' -Verb RunAs";
+            } else {
+                psCmd = "Start-Process -FilePath '" + file.replace("'", "''") + "' -ArgumentList " + argList + " -Verb RunAs";
+            }
+
+            return new String[] {
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-ExecutionPolicy", "Bypass",
+                    "-Command", psCmd
+            };
+        }
 
     },
     /**
@@ -196,6 +239,33 @@ public enum OperatingSystem {
             String userHome = System.getProperty("user.home");
             return new File(new File(userHome, "Library/Application Support"), folderName);
         }
+
+        @Override
+        public String[] createProcessElevationCommand(String[] processCommand, String[] includedEnvVars) {
+            StringBuilder shell = new StringBuilder();
+            for (int i = 0; i < processCommand.length; i++) {
+                if (i > 0) shell.append(' ');
+
+                String arg = processCommand[i];
+                if (arg == null || arg.isEmpty()) {
+                    shell.append("''");
+                } else {
+                    // Escape single quotes for shell by closing, inserting escaped quote, and reopening
+                    shell.append('\'')
+                            .append(arg.replace("'", "'\\''"))
+                            .append('\'');
+                }
+            }
+
+            // Escape for AppleScript double-quoted string
+            String shellCommand = shell.toString()
+                    .replace("\\", "\\\\") // escape backslashes
+                    .replace("\"", "\\\""); // escape double quotes
+
+            String script = "do shell script \"" + shellCommand + "\" with administrator privileges";
+
+            return new String[]{ "osascript", "-e", script };
+        }
     },
     /**
      * Represents an unknown or unsupported operating system.
@@ -228,6 +298,11 @@ public enum OperatingSystem {
         @Override
         public File createAppConfigDir(String folderName) {
             return LINUX.createAppConfigDir(folderName);
+        }
+
+        @Override
+        public String[] createProcessElevationCommand(String[] processCommand, String[] includedEnvVars) {
+            return LINUX.createProcessElevationCommand(processCommand, includedEnvVars);
         }
     };
 
@@ -464,4 +539,50 @@ public enum OperatingSystem {
      * @return a {@link File} representing the configuration directory.
      */
     public abstract File createAppConfigDir(String folderName);
+
+    /**
+     * Constructs a command line array used to prompt the user to authenticate for running a process with elevated privileges.<br><br>
+     * <br>
+     * It is recommended to use absolute paths when referencing files or executables since elevation might change the working directory<br>
+     * <br>
+     *
+     * Implementation:<br>
+     * <ul>
+     *     <li>Linux: uses pkexec (GUI polkit prompt).</li>
+     *     <li>macOS: uses osascript do shell script "..." with administrator privileges.</li>
+     *     <li>Windows: uses PowerShell Start-Process ... -Verb RunAs (UAC).</li>
+     * </ul>
+     *
+     * @param processCommand The command line array to be run with elevation privileges. On Linux, the executable path has to be absolute.
+     * @param includedEnvVars Environment variables to pass to the Linux pkexec command. Redundant for Windows and macOS execution.
+     * @return an array of command-line arguments suitable for {@link ProcessBuilder}.
+     * @see #createProcessElevationCommand(String[])
+     */
+    public abstract String[] createProcessElevationCommand(String[] processCommand, String[] includedEnvVars);
+    /**
+     * Constructs a command line array used to prompt the user to authenticate for running a process with elevated privileges.<br>
+     * Default behavior (Linux): includes DISPLAY, XAUTHORITY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS environment variables for {@code pkexec}.<br>
+     * <br>
+     * It is recommended to use absolute paths when referencing files or executables since elevation might change the working directory<br>
+     * <br>
+     *
+     * Implementation:<br>
+     * <ul>
+     *     <li>Linux: uses pkexec (GUI polkit prompt).</li>
+     *     <li>macOS: uses osascript do shell script "..." with administrator privileges.</li>
+     *     <li>Windows: uses PowerShell Start-Process ... -Verb RunAs (UAC).</li>
+     * </ul>
+     *
+     * @param processCommand The command line array to be run with elevation privilegs. On Linux, the executable path has to be absolute.
+     * @return an array of command-line arguments suitable for {@link ProcessBuilder}.
+     * @see #createProcessElevationCommand(String[], String[])
+     */
+    public String[] createProcessElevationCommand(String[] processCommand) {
+        return createProcessElevationCommand(processCommand, new String[]{
+                "DISPLAY",
+                "XAUTHORITY",
+                "WAYLAND_DISPLAY",
+                "DBUS_SESSION_BUS_ADDRESS"
+        });
+    }
 }
