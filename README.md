@@ -80,16 +80,16 @@ You may also directly copy specific utility classes into your own project, as lo
 
 ## 📖 Available Utilities
 
-| Class              | Description                                                                                                                                                       |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `MangoIO`          | Handy I/O utilities like recursive directory deletion.                                                                                                            |
-| `NameConverter`    | Converts names written in different naming conventions (e.g., `camelCase`, `snake_case`) from one convention to the other.                                        |
-| `SemanticVersion`  | Compare and sort semantic versions (e.g., `1.2.0` vs `1.10.0`). Useful for dependency versioning.                                                                 |
-| `Hasher`           | Password hashing and verification using PBKDF2 with HMAC-SHA-256.                                                                                                 |
-| `CypherEncryption` | Easy AES-GCM encryption/decryption with password-based key derivation (PBKDF2).                                                                                   |
-| `CliArg`           | Parses command-line arguments (flags, keys, values, etc.) from `String[]` or raw input strings.                                                                   |
-| `LogManager`       | Customizable logging utility that redirects system output, styles console messages, and manages log files.                                                        |
-| `OperatingSystem`  | A safe and cross-platform alternative to `java.awt.Desktop`'s open and browse methods. Also including OS detection, config path helpers, and event normalization. |
+| Utility           | Description                                                                                                                                                       |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Tri-Interfaces`  | Functional interfaces (such as Consumer, Function, and Predicate) supporting three arguments, consistent with existing Java conventions.                          |
+| `Tuples`          | Immutable `Tuple2` and `Tuple3` classes capable of storing two or three values, each potentially of a different type.                                             |
+| `MangoIO`         | Handy I/O utilities like recursive directory deletion.                                                                                                            |
+| `NameConverter`   | Converts names written in different naming conventions (e.g., `camelCase`, `snake_case`) from one convention to the other.                                        |
+| `SemanticVersion` | Compare and sort semantic versions (e.g., `1.2.0` vs `1.10.0`). Useful for dependency versioning.                                                                 |
+| `CliArg`          | Parses command-line arguments (flags, keys, values, etc.) from `String[]` or raw input strings.                                                                   |
+| `LogManager`      | Customizable logging utility that redirects system output, styles console messages, and manages log files.                                                        |
+| `OperatingSystem` | A safe and cross-platform alternative to `java.awt.Desktop`'s open and browse methods. Also including OS detection, config path helpers, and event normalization. |
 
 ---
 
@@ -97,7 +97,6 @@ You may also directly copy specific utility classes into your own project, as lo
 
 - 🛠️ Simple and modular design
 - 📦 Easy integration with Maven and Gradle
-- 🔐 Includes security utilities like password hashing and AES encryption
 - 💡 Utility classes that fill common gaps in the Java standard library
 - 🔄 Actively maintained and tested across real-world projects
 
