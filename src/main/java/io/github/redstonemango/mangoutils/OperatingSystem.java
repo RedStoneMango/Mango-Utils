@@ -554,14 +554,14 @@ public enum OperatingSystem {
      * </ul>
      *
      * @param processCommand The command line array to be run with elevation privileges. On Linux, the executable path has to be absolute.
-     * @param includedEnvVars Environment variables to pass to the Linux pkexec command. Redundant for Windows and macOS execution.
+     * @param includedEnvVars Environment variables to pass to the Linux pkexec command. These the value of these variables is determined using {@link System#getenv(String)}. If a string does not have an associated value, it is not taken into account when constructing the command. This option does not have an effect for Windows and macOS execution.
      * @return an array of command-line arguments suitable for {@link ProcessBuilder}.
      * @see #createProcessElevationCommand(String[])
      */
     public abstract String[] createProcessElevationCommand(String[] processCommand, String[] includedEnvVars);
     /**
      * Constructs a command line array used to prompt the user to authenticate for running a process with elevated privileges.<br>
-     * Default behavior (Linux): includes DISPLAY, XAUTHORITY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS environment variables for {@code pkexec}.<br>
+     * Default behavior (Linux): includes DISPLAY, XAUTHORITY, WAYLAND_DISPLAY, DBUS_SESSION_BUS_ADDRESS environment variables for {@code pkexec} <i>(see {@linkplain #createProcessElevationCommand(String[], String[]) here} for more information on environment variables with pkexec)</i>.<br>
      * <br>
      * It is recommended to use absolute paths when referencing files or executables since elevation might change the working directory<br>
      * <br>
