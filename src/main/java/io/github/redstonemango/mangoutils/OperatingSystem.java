@@ -111,7 +111,7 @@ public enum OperatingSystem {
         public String[] createProcessElevationCommand(String[] processCommand, String[] includedEnvVars) {
             List<String> command = new ArrayList<>();
             command.add("pkexec");
-            command.add("env");
+            if (includedEnvVars.length > 0) command.add("env");
 
             for (String var : includedEnvVars) {
                 String value = System.getenv(var);
