@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025 RedStoneMango
+ *
+ * This file is licensed under the MIT License.
+ * You may use, copy, modify, and distribute this file under the terms of the MIT License.
+ * See the LICENSE file or https://opensource.org/licenses/MIT for full text.
+ */
+
 package io.github.redstonemango.mangoutils.function;
 
 import java.util.Objects;
