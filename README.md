@@ -1,12 +1,12 @@
-# ☕ Mango-Utils
+# Mango-Utils
 
 **Mango-Utils** is a free, open-source collection of lightweight Java utility classes—ranging from simple I/O helpers to secure password hashing and configurable log management.
 
 ---
 
-## 🔽 Installation
+## Installation
 
-### 📦 Using the JAR
+### Using the JAR
 
 To use Mango-Utils as a standalone dependency:
 
@@ -16,7 +16,7 @@ To use Mango-Utils as a standalone dependency:
 
 ---
 
-### Ⓜ️ Maven
+### Maven
 
 Add the JitPack repository to your `pom.xml`:
 
@@ -43,7 +43,7 @@ Then add the dependency:
 
 ---
 
-### 🐘 Gradle
+### Gradle
 
 In your `settings.gradle` (if using version catalog or dependency management):
 
@@ -69,7 +69,7 @@ dependencies {
 
 ---
 
-### ☕ Direct Source Copy
+### Direct Source Copy
 
 You may also directly copy specific utility classes into your own project, as long as you:
 
@@ -78,7 +78,7 @@ You may also directly copy specific utility classes into your own project, as lo
 
 ---
 
-## 📖 Available Utilities
+## Available Utilities
 
 | Utility           | Description                                                                                                                                                       |
 |-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -93,16 +93,15 @@ You may also directly copy specific utility classes into your own project, as lo
 
 ---
 
-## ✅ Why Use Mango-Utils?
-
-- 🛠️ Simple and modular design
-- 📦 Easy integration with Maven and Gradle
-- 💡 Utility classes that fill common gaps in the Java standard library
-- 🔄 Actively maintained and tested across real-world projects
+## Why Use Mango-Utils?
+- Simple and modular design
+- Easy integration with Maven and Gradle
+- Utility classes that fill common gaps in the Java standard library
+- Actively maintained and tested across real-world projects
 
 ---
 
-## 📎 License
+## License
 
 This project is licensed under [![GitHub License](https://img.shields.io/github/license/RedStoneMango/Mango-Utils)](https://github.com/RedStoneMango/mango-utils/blob/main/LICENSE).
 
@@ -110,6 +109,6 @@ You may use the project as long as you follow the terms of that very license.
 
 ---
 
-### 💬 Feedback & Contributions
+### Feedback & Contributions
 
 Suggestions, issues, and pull requests are welcome! Feel free to open a discussion or submit a PR to contribute.
